@@ -2,8 +2,11 @@
 
 namespace malkusch\bav;
 
+use LogicException;
+use malkusch\index\FileExistsIOException;
 use \malkusch\index\FixedSizeIndex;
 use \malkusch\index\IndexException;
+use malkusch\index\IOIndexException;
 
 /**
  * It uses the huge file from the Bundesbank and uses a binary search to find a row.
@@ -49,9 +52,11 @@ class FileDataBackend extends DataBackend
         $this->parser = new FileParser($file);
         $this->fileUtil = new FileUtil();
     }
-    
+
     /**
      * @return FixedSizeIndex
+     * @throws FileExistsIOException
+     * @throws IOIndexException
      */
     private function getIndex()
     {
@@ -128,6 +133,18 @@ class FileDataBackend extends DataBackend
     }
 
     /**
+     * Since 2019-03 the file is encoded in UTF-8. Convert the encoding to ISO-8859-1 so the file parser works with fixed line lengths.
+     *
+     * @param $file
+     * @throws EncodingException
+     * @throws UnsupportedEncodingException
+     */
+    private function reEncodeFile($file) {
+        $contents = file_get_contents($file);
+        file_put_contents($file, utf8_decode($contents));
+    }
+
+    /**
      * @see DataBackend::uninstall()
      * @throws DataBackendIOException
      */
@@ -140,8 +157,16 @@ class FileDataBackend extends DataBackend
     }
 
     /**
-     * @see DataBackend::install()
      * @throws DataBackendIOException
+     * @throws DownloaderException
+     * @throws EncodingException
+     * @throws FileException
+     * @throws FileParserIOException
+     * @throws FileParserNotExistsException
+     * @throws FileValidatorException
+     * @throws URIPickerException
+     * @throws UnsupportedEncodingException
+     * @see DataBackend::install()
      */
     public function install()
     {
@@ -151,10 +176,16 @@ class FileDataBackend extends DataBackend
     /**
      * This method works only if your PHP is compiled with cURL.
      *
-     * @see DataBackend::update()
      * @throws DataBackendIOException
-     * @throws FileException
      * @throws DownloaderException
+     * @throws EncodingException
+     * @throws FileException
+     * @throws FileParserIOException
+     * @throws FileParserNotExistsException
+     * @throws FileValidatorException
+     * @throws URIPickerException
+     * @throws UnsupportedEncodingException
+     * @see DataBackend::update()
      */
     public function update()
     {
@@ -188,6 +219,9 @@ class FileDataBackend extends DataBackend
         // download file
         $file = $downloader->downloadFile($url);
 
+        // convert encoding from UTF-8 to ISO-8859-15 (as needed by file parser)
+        $this->reEncodeFile($file);
+
         // Validate file format.
         $validator = new FileValidator();
         $validator->validate($file);
@@ -205,9 +239,10 @@ class FileDataBackend extends DataBackend
     }
 
     /**
-     * @throws DataBackendIOException
-     * @throws DataBackendException
      * @return Bank[]
+     * @throws DataBackendException
+     * @throws DataBackendIOException
+     * @throws EncodingException
      * @see DataBackend::getAllBanks()
      */
     public function getAllBanks()
@@ -235,11 +270,11 @@ class FileDataBackend extends DataBackend
     }
 
     /**
-     * @throws DataBackendIOException
-     * @throws BankNotFoundException
      * @param String $bankID
-     * @see DataBackend::getNewBank()
      * @return Bank
+     * @throws EncodingException
+     * @throws DataBackendIOException
+     * @throws BankNotFoundException*@see DataBackend::getNewBank()
      */
     public function getNewBank($bankID)
     {
@@ -266,10 +301,14 @@ class FileDataBackend extends DataBackend
     }
 
     /**
-     * @see DataBackend::getMainAgency()
-     * @throws DataBackendException
-     * @throws NoMainAgencyException
+     * @param Bank $bank
      * @return Agency
+     * @throws DataBackendException
+     * @throws DataBackendIOException
+     * @throws EncodingException
+     * @throws FileParserNotExistsException
+     * @throws NoMainAgencyException
+     * @see DataBackend::getMainAgency()
      */
     public function getMainAgency(Bank $bank)
     {
@@ -286,7 +325,7 @@ class FileDataBackend extends DataBackend
             throw new NoMainAgencyException($bank);
 
         } catch (UndefinedFileParserContextException $e) {
-            throw new \LogicException("Start and end should be defined.");
+            throw new LogicException("Start and end should be defined.");
 
         } catch (FileParserIOException $e) {
             throw new DataBackendIOException("Parser Exception at bank {$bank->getBankID()}");
@@ -298,10 +337,13 @@ class FileDataBackend extends DataBackend
     }
 
     /**
-     * @see DataBackend::getAgenciesForBank()
-     * @throws DataBackendIOException
-     * @throws DataBackendException
+     * @param Bank $bank
      * @return Agency[]
+     * @throws DataBackendException
+     * @throws DataBackendIOException
+     * @throws EncodingException
+     * @throws FileParserNotExistsException
+     * @see DataBackend::getAgenciesForBank()
      */
     public function getAgenciesForBank(Bank $bank)
     {
@@ -318,7 +360,7 @@ class FileDataBackend extends DataBackend
             return $agencies;
 
         } catch (UndefinedFileParserContextException $e) {
-            throw new \LogicException("Start and end should be defined.");
+            throw new LogicException("Start and end should be defined.");
 
         } catch (FileParserIOException $e) {
             throw new DataBackendIOException();
@@ -330,12 +372,16 @@ class FileDataBackend extends DataBackend
     }
 
     /**
+     * @param $bankID
      * @return FileParserContext
+     * @throws EncodingException
+     * @throws FileParserIOException
+     * @throws FileParserNotExistsException
      */
     private function defineContextInterval($bankID)
     {
         if (! isset($this->contextCache[$bankID])) {
-            throw new \LogicException("The contextCache object should exist!");
+            throw new LogicException("The contextCache object should exist!");
 
         }
         $context = $this->contextCache[$bankID];
@@ -400,9 +446,13 @@ class FileDataBackend extends DataBackend
     /**
      * Returns bank agencies for a given BIC.
      *
-     * @todo This method is inefficient. Add index based implementation.
      * @param string $bic BIC
      * @return Agency[]
+     * @throws DataBackendException
+     * @throws DataBackendIOException
+     * @throws EncodingException
+     * @throws UndefinedAttributeAgencyException
+     * @todo This method is inefficient. Add index based implementation.
      */
     public function getBICAgencies($bic)
     {

@@ -247,6 +247,6 @@ return array(
     'malkusch\bav\undefinedattributeagencyexception' => '../classes/bank/exception/UndefinedAttributeAgencyException.php',
     'malkusch\bav\undefinedfileparsercontextexception' => '../classes/dataBackend/file/fileParser/exception/UndefinedFileParserContextException.php',
     'malkusch\bav\missingattributesdatabackendioexception' => '../classes/dataBackend/exception/MissingAttributesDataBackendIOException.php',
-    'malkusch\bav\fileparserioexception' => '../classes/dataBackend/file/fileParser/exception/FileParserIOException',
-    'malkusch\bav\parseexception' => '../classes/dataBackend/file/fileParser/exception/ParseException',
+    'malkusch\bav\fileparserioexception' => '../classes/dataBackend/file/fileParser/exception/FileParserIOException.php',
+    'malkusch\bav\parseexception' => '../classes/dataBackend/file/fileParser/exception/ParseException.php',
 );
