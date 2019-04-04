@@ -134,7 +134,6 @@ class FileParser
 
         }
 
-
         $dummyLine = fgets($this->fp);
         if (! $dummyLine) {
             throw new FileParserIOException();
@@ -193,10 +192,11 @@ class FileParser
     }
 
     /**
-     * @throws FileParserIOException
-     * @throws FileParserNotExistsException
      * @param int $line
      * @return string
+     * @throws EncodingException
+     * @throws FileParserIOException
+     * @throws FileParserNotExistsException
      */
     public function readLine($line)
     {
@@ -205,10 +205,11 @@ class FileParser
     }
 
     /**
-     * @throws FileParserIOException
-     * @throws FileParserNotExistsException
      * @param int $line
      * @return string
+     * @throws EncodingException
+     * @throws FileParserIOException
+     * @throws FileParserNotExistsException
      */
     public function getBankID($line)
     {
@@ -249,9 +250,10 @@ class FileParser
     }
 
     /**
-     * @throws ParseException
+     * @param DataBackend $dataBackend
      * @param string $line
      * @return Bank
+     * @throws ParseException
      */
     public function getBank(DataBackend $dataBackend, $line)
     {
@@ -265,9 +267,10 @@ class FileParser
     }
 
     /**
-     * @throws ParseException
+     * @param Bank $bank
      * @param string $line
      * @return Agency
+     * @throws ParseException
      */
     public function getAgency(Bank $bank, $line)
     {
