@@ -32,7 +32,12 @@
         "doctrine/orm": "^2"
     },
     "archive": {
-        "exclude": ["/tests"]
+        "exclude": [
+            "/.github",
+            "/docs",
+            "/tests",
+            "phpunit*"
+        ]
     },
     "bin": [
         "bin/bav-update.php",
