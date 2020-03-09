@@ -1,0 +1,26 @@
+name: Unit tests
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        php-versions: ['7.0', '7.1', '7.2', '7.3', '7.4']
+
+    steps:
+
+      - uses: actions/checkout@v1
+
+      - name: Composer install
+        uses: php-actions/composer@v1
+
+      - name: Run unit tests
+        run: |
+          vendor/bin/phpunit -c phpunit.xml
+
+      - name: Run integration tests
+        run: |
+          vendor/bin/phpunit -c phpunit-integration.xml --testsuite IntegrationTests
