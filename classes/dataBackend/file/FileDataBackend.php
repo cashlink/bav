@@ -195,7 +195,7 @@ class FileDataBackend extends DataBackend
         $uriPicker = new FallbackURIPicker();
         $path = $uriPicker->pickURI($content);
 
-        if (strlen($path) > 0 && $path{0} != "/") {
+        if (strlen($path) > 0 && $path[0] != "/") {
             $path = sprintf("/%s/%s", dirname(self::DOWNLOAD_URI), $path);
 
         }
