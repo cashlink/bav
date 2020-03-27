@@ -51,7 +51,7 @@ class Validator87a extends Validator
         $konto  = array();
 
         for ($i = 0; $i < strlen($accountID); $i++) {
-            $konto[$i+1] = $accountID{$i};
+            $konto[$i+1] = $accountID[$i];
         }
 
         $i = 4;
