@@ -32,11 +32,11 @@ class Validator75 extends Validator00
         $this->setStart(4);
         $this->setEnd(-2);
     }
-    
+
     public function isValid($account)
     {
         $this->checkType($account);
-        
+
         $account = ltrim($account, '0');
         $length  = strlen($account);
 
@@ -45,7 +45,7 @@ class Validator75 extends Validator00
 
         }
         if ($length == 9) {
-            if ($account{0} == 9) {
+            if ($account[0] == 9) {
                 $account = substr($account, 1, 6);
 
             } else {
